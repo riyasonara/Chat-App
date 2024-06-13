@@ -9,19 +9,19 @@ import {
   Typography,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import bgImage from "../../assets/bg.jpg";
+import adminbg from "../../assets/adminbg.jpg";
 import { Navigate } from "react-router-dom";
 
 const theme = createTheme();
 
-const isAdmin = false;
+const isAdmin = true;
 
 const AdminLogin = () => {
   const secretKey = useStrongPassword();
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("submit");
+    console.log("admin logged in");
     // Handle login or registration logic here
   };
 
@@ -31,7 +31,7 @@ const AdminLogin = () => {
       <CssBaseline />
       <Box
         sx={{
-          backgroundImage: `url(${bgImage})`,
+          backgroundImage: `url(${adminbg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           minHeight: "100vh",
