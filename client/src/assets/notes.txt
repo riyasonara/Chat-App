@@ -1,0 +1,17 @@
+register 
+login
+search 
+send request
+
+getmyfriends
+
+send attachments
+create group
+getMyChat
+chat details
+rename group
+delete group
+add members
+remove members
+leave group
+get msgs

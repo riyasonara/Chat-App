@@ -59,7 +59,16 @@ const Dashboard = () => {
     <AdminLayout>
       <Container component={"main"}>
         {AppBar}
-        <Stack direction={"row"} spacing={"2rem"} flexWrap={"wrap"}>
+        <Stack
+          direction={{
+            xs: "column",
+            lg: "row",
+          }}
+          sx={{ gap: "2rem" }}
+          flexWrap={"wrap"}
+          justifyContent={"center"}
+          alignItems={{ xs: "center", lg: "stretch" }}
+        >
           <Paper
             elevation={3}
             sx={{
@@ -83,7 +92,6 @@ const Dashboard = () => {
               width: { xs: "100%", sm: "50%" },
               position: "relative",
               maxWidth: "25rem",
-              height: "25rem",
             }}
           >
             <DoughnutChart
@@ -103,6 +111,7 @@ const Dashboard = () => {
             </Stack>
           </Paper>
         </Stack>
+
         {Widgets}
       </Container>
     </AdminLayout>
