@@ -72,10 +72,10 @@ const Dashboard = () => {
           <Paper
             elevation={3}
             sx={{
-              padding: "2rem 3.5rem",
+              padding: "2rem 1rem", // Increase padding to make chart area larger
               borderRadius: "1rem",
-              width: "100%",
-              maxWidth: "45rem",
+              width: { xs: "100%", sm: "50%" }, // Increase width for larger chart area
+              maxWidth: "45rem", // Increase max width for larger chart area
             }}
           >
             <Typography>Last Messages</Typography>
