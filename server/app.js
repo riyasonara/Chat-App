@@ -15,7 +15,7 @@ const mongoURI = process.env.MONGO_URI;
 const port = process.env.PORT || 3000;
 
 connectDB(mongoURI);
-createUser(10);
+//  createUser(10);
 
 const app = express();
 
