@@ -5,7 +5,12 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middleware/error.js";
 import chatRoute from "./routes/chat.js";
-import { createGroupChats, createMessages, createMessagesInAChat, createSingleChats } from "./seeders/chat.js";
+import {
+  createGroupChats,
+  createMessages,
+  createMessagesInAChat,
+  createSingleChats,
+} from "./seeders/chat.js";
 import adminRoute from "./routes/admin.js";
 
 dotenv.config({
@@ -14,6 +19,7 @@ dotenv.config({
 
 const mongoURI = process.env.MONGO_URI;
 const port = process.env.PORT || 3000;
+const adminSecretKey = process.env.ADMIN_SECRET_KEY || "adsasdsdfsdfsdfd";
 
 connectDB(mongoURI);
 //  createUser(10);
@@ -24,15 +30,13 @@ connectDB(mongoURI);
 
 const app = express();
 
-
-
-
 // Using Middlewares Here
 app.use(express.json());
 app.use(cookieParser());
 
 app.use("/user", userRoute);
 app.use("/chat", chatRoute);
+app.use("/admin", adminRoute);
 
 app.get("/", (req, res) => {
   res.send("Server is running");
@@ -43,3 +47,5 @@ app.use(errorMiddleware);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+export { adminSecretKey };

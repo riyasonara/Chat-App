@@ -19,7 +19,6 @@ const validateRegister = () => [
   body("username", "Please enter username").notEmpty(),
   body("password", "Please enter password").notEmpty(),
   body("bio", "Please enter bio").notEmpty(),
-  check("avatar", "Please upload avatar").notEmpty(),
 ];
 
 const validateLogin = () => [
@@ -52,11 +51,6 @@ const validateRemoveMember = () => [
 
 const validateSendAttachments = () => [
   body("id", "Please enter chatId").notEmpty(),
-  check("files")
-    .notEmpty()
-    .withMessage("Please upload attachments")
-    .isArray({ min: 1, max: 5 })
-    .withMessage("You may attach up to five attachments"),
 ];
 
 const chatIdValidator = () => [param("id", "Please enter chatId").notEmpty()];
