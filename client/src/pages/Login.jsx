@@ -18,6 +18,11 @@ import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
 import { useInputValidation, useStrongPassword, useFileHandler } from "6pp";
 import { usernameValidator } from "../utils/Validators";
+import axios from "axios";
+import { server } from "../constants/Config";
+import { useDispatch } from "react-redux";
+import { userExists } from "../redux/reducers/auth";
+import toast from "react-hot-toast";
 
 const theme = createTheme();
 
@@ -27,10 +32,64 @@ const LoginPage = () => {
   const email = useInputValidation("");
   const password = useStrongPassword();
   const avatar = useFileHandler("single", 2);
+  const bio = useInputValidation("");
 
-  const handleSubmit = (event) => {
+  const dispatch = useDispatch();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Handle login or registration logic here
+
+    if (isLoggedIn) {
+      // Handle login
+      const loginConfig = {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      try {
+        const { data } = await axios.post(
+          `${server}/api/v1/user/login`,
+          {
+            username: username.value,
+            password: password.value,
+          },
+          loginConfig
+        );
+        dispatch(userExists(true));
+        toast.success(data.message);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
+    } else {
+      // Handle registration
+      const registerConfig = {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
+      const formData = new FormData();
+      formData.append("username", username.value);
+      formData.append("email", email.value);
+      formData.append("bio", bio.value);
+      formData.append("password", password.value);
+      formData.append("avatar", avatar.value);
+
+      try {
+        const { data } = await axios.post(
+          `${server}/api/v1/user/new`,
+          formData,
+          registerConfig
+        );
+        dispatch(userExists(true));
+        toast.success(data.message);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
+    }
   };
 
   const toggleLoginRegister = () => {
@@ -143,26 +202,38 @@ const LoginPage = () => {
                   onChange={username.changeHandler}
                   style={{ fontWeight: "bold" }}
                 />
-
                 {username.error && (
                   <Typography color="red" variant="caption">
                     {username.error}
                   </Typography>
                 )}
                 {!isLoggedIn && (
-                  <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Email Address"
-                    name="email"
-                    autoComplete="email"
-                    autoFocus={isLoggedIn}
-                    value={email.value}
-                    onChange={email.changeHandler}
-                    style={{ fontWeight: "bold" }}
-                  />
+                  <>
+                    <TextField
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="email"
+                      label="Email Address"
+                      name="email"
+                      autoComplete="email"
+                      value={email.value}
+                      onChange={email.changeHandler}
+                      style={{ fontWeight: "bold" }}
+                    />
+                    <TextField
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="bio"
+                      label="Bio"
+                      name="bio"
+                      autoComplete="bio"
+                      value={bio.value}
+                      onChange={bio.changeHandler}
+                      style={{ fontWeight: "bold" }}
+                    />
+                  </>
                 )}
                 <TextField
                   margin="normal"

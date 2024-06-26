@@ -1,6 +1,6 @@
 import { compare } from "bcrypt";
 import { User } from "../models/user.js";
-import { cookieOptions, emitEvent, sendToken } from "../utils/features.js";
+import { cookieOptions, emitEvent, sendToken, uploadFilesToCloudinary } from "../utils/features.js";
 import { TryCatch } from "../middleware/error.js";
 import { ErrorHandler } from "../utils/utility.js";
 import { Chat } from "../models/chat.js";
@@ -11,15 +11,18 @@ import { getOtherMembers } from "../lib/helper.js";
 // Create a new user and save it to the database and save token in cookie
 const newUser = TryCatch(async (req, res, next) => {
   const { name, username, password, bio } = req.body;
+
   const file = req.file;
 
   if (!file) {
     return next(new ErrorHandler("Please upload Avatar"));
   }
 
+  const result = await uploadFilesToCloudinary([file]);
+
   const avatar = {
-    public_id: "1",
-    url: "url",
+    public_id: result[0].public_id,
+    url: result[0].secureUrl,
   };
   const user = await User.create({
     name,
