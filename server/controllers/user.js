@@ -22,7 +22,7 @@ const newUser = TryCatch(async (req, res, next) => {
 
   const avatar = {
     public_id: result[0].public_id,
-    url: result[0].secureUrl,
+    url: result[0].url,
   };
   const user = await User.create({
     name,
@@ -86,7 +86,7 @@ const searchUser = TryCatch(async (req, res) => {
   const users = allUsersExceptMeAndFriends.map(({ _id, name, avatar }) => ({
     _id,
     name,
-    avatar: avatar.url,
+    avatar:avatar.url,
   }));
 
   return res.status(200).json({

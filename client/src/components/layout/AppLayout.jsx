@@ -5,23 +5,50 @@ import { sampleChats } from "../../constants/SampleData";
 import Title from "../shared/Title";
 import ChatList from "../specific/ChatList";
 import Header from "./Header";
-import { Grid, Skeleton } from "@mui/material";
+import { Drawer, Grid, Skeleton } from "@mui/material";
 import Profile from "../specific/Profile";
+import { useMyChatsQuery } from "../../redux/api/api";
+import { useDispatch, useSelector } from "react-redux";
+import { setIsMobile } from "../../redux/reducers/misc";
+import useErrors from "../../hooks/hook";
 
 const AppLayout = () => (WrappedComponent) => {
   return (props) => {
     const params = useParams();
     const chatId = params.chatId;
+    const dispatch = useDispatch();
+
+    const { isMobile } = useSelector((state) => state.misc);
+
+    const { isLoading, data, isError, error, refetch } = useMyChatsQuery("");
+
+    useErrors([{ isError, error }]);
+    console.log(data);
 
     const handleDeleteChat = (e, _id, groupChat) => {
       e.preventDefault();
       console.log("DeleteChat", _id, groupChat);
     };
+    const handleMobileClose = () => dispatch(setIsMobile(false));
 
     return (
       <>
         <Title />
         <Header />
+
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          <Drawer open={isMobile} onClose={handleMobileClose}>
+            <ChatList
+              w="70vw"
+              chats={data?.chats}
+              chatId={chatId}
+              handleDeleteChat={handleDeleteChat}
+            />
+          </Drawer>
+        )}
+
         <Grid container height={"calc(100vh - 4rem)"}>
           <Grid
             item
@@ -32,11 +59,15 @@ const AppLayout = () => (WrappedComponent) => {
             }}
             height={"100%"}
           >
-            <ChatList
-              chats={sampleChats}
-              chatId={chatId}
-              handleDeleteChat={handleDeleteChat}
-            />
+            {isLoading ? (
+              <Skeleton />
+            ) : (
+              <ChatList
+                chats={data?.chats}
+                chatId={chatId}
+                handleDeleteChat={handleDeleteChat}
+              />
+            )}
           </Grid>
           <Grid item xs={12} sm={8} md={5} lg={6} height={"100%"}>
             <WrappedComponent {...props} />
@@ -52,7 +83,7 @@ const AppLayout = () => (WrappedComponent) => {
               bgcolor: "rgba(0,0,0,0.85)",
             }}
           >
-            <Profile/>
+            <Profile />
           </Grid>
         </Grid>
       </>

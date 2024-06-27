@@ -1,152 +1,226 @@
-import { useState } from "react";
+import { useFileHandler, useInputValidation } from "6pp";
+import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
 import {
-  Box,
+  Avatar,
   Button,
   Container,
+  IconButton,
+  Paper,
+  Stack,
   TextField,
   Typography,
-  Avatar,
-  CssBaseline,
-  Paper,
-  Link,
-  IconButton,
 } from "@mui/material";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import bgImage from "../assets/bg.jpg";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
-import { useInputValidation, useStrongPassword, useFileHandler } from "6pp";
-import { usernameValidator } from "../utils/Validators";
 import axios from "axios";
-import { server } from "../constants/Config";
-import { useDispatch } from "react-redux";
-import { userExists } from "../redux/reducers/auth";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
+import { server } from "../constants/Config";
+import { userExists } from "../redux/reducers/auth";
+import { usernameValidator } from "../utils/Validators";
+import bgImage from "../assets/bg.jpg";
 
-const theme = createTheme();
+const Login = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-const LoginPage = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const username = useInputValidation("", usernameValidator);
-  const email = useInputValidation("");
-  const password = useStrongPassword();
-  const avatar = useFileHandler("single", 2);
+  const toggleLogin = () => setIsLogin((prev) => !prev);
+
+  const name = useInputValidation("");
   const bio = useInputValidation("");
+  const username = useInputValidation("", usernameValidator);
+  const password = useInputValidation("");
+
+  const avatar = useFileHandler("single");
 
   const dispatch = useDispatch();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-    if (isLoggedIn) {
-      // Handle login
-      const loginConfig = {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
+    const toastId = toast.loading("Logging In...");
+
+    setIsLoading(true);
+    const config = {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    try {
+      const { data } = await axios.post(
+        `${server}/api/v1/user/login`,
+        {
+          username: username.value,
+          password: password.value,
         },
-      };
-
-      try {
-        const { data } = await axios.post(
-          `${server}/api/v1/user/login`,
-          {
-            username: username.value,
-            password: password.value,
-          },
-          loginConfig
-        );
-        dispatch(userExists(true));
-        toast.success(data.message);
-      } catch (error) {
-        toast.error(error.response?.data?.message || "Something went wrong");
-      }
-    } else {
-      // Handle registration
-      const registerConfig = {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      };
-
-      const formData = new FormData();
-      formData.append("username", username.value);
-      formData.append("email", email.value);
-      formData.append("bio", bio.value);
-      formData.append("password", password.value);
-      formData.append("avatar", avatar.value);
-
-      try {
-        const { data } = await axios.post(
-          `${server}/api/v1/user/new`,
-          formData,
-          registerConfig
-        );
-        dispatch(userExists(true));
-        toast.success(data.message);
-      } catch (error) {
-        toast.error(error.response?.data?.message || "Something went wrong");
-      }
+        config
+      );
+      dispatch(userExists(true));
+      toast.success(data.message, {
+        id: toastId,
+      });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something Went Wrong", {
+        id: toastId,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const toggleLoginRegister = () => {
-    setIsLoggedIn(!isLoggedIn);
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+
+    const toastId = toast.loading("Signing Up...");
+    setIsLoading(true);
+
+    const formData = new FormData();
+    if (avatar.file) {
+      formData.append("avatar", avatar.file);
+    }
+    formData.append("name", name.value);
+    formData.append("bio", bio.value);
+    formData.append("username", username.value);
+    formData.append("password", password.value);
+
+    const config = {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    };
+
+    try {
+      const { data } = await axios.post(
+        `${server}/api/v1/user/new`,
+        formData,
+        config
+      );
+
+      dispatch(userExists(true));
+      toast.success(data.message, {
+        id: toastId,
+      });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something Went Wrong", {
+        id: toastId,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
+    <div
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        height: "100vh",
+        width: "100%",
+        overflow: "hidden",
+      }}
+    >
+      <Container
+        component={"main"}
+        maxWidth="xs"
         sx={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          minHeight: "100vh",
+          height: "100vh",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          opacity: 0.9,
         }}
       >
-        <Container component="main" maxWidth="xs">
-          <Paper
-            elevation={6}
-            sx={{
-              p: 4,
-              backdropFilter: "blur(10px)",
-              backgroundColor: "rgba(255, 255, 255, 0.5)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              borderRadius: "12px",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              {isLoggedIn && (
-                <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                  <LockOutlinedIcon />
-                </Avatar>
-              )}
+        <Paper
+          elevation={3}
+          sx={{
+            padding: "1rem 2rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            maxHeight: "100%",
+            overflow: "hidden",
+          }}
+        >
+          {isLogin ? (
+            <>
+              <Typography variant="h5">Login</Typography>
+              <form
+                style={{
+                  width: "100%",
+                  marginTop: "1rem",
+                }}
+                onSubmit={handleLogin}
+              >
+                <TextField
+                  required
+                  fullWidth
+                  label="Username"
+                  margin="normal"
+                  variant="outlined"
+                  value={username.value}
+                  onChange={username.changeHandler}
+                />
 
-              {!isLoggedIn && (
-                <Box
+                <TextField
+                  required
+                  fullWidth
+                  label="Password"
+                  type="password"
+                  margin="normal"
+                  variant="outlined"
+                  value={password.value}
+                  onChange={password.changeHandler}
+                />
+
+                <Button
                   sx={{
-                    position: "relative",
-                    width: "10rem",
-                    marginBottom: "1rem",
+                    marginTop: "1rem",
                   }}
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  fullWidth
+                  disabled={isLoading}
                 >
+                  Login
+                </Button>
+
+                <Typography textAlign={"center"} m={"1rem"}>
+                  OR
+                </Typography>
+
+                <Button
+                  disabled={isLoading}
+                  fullWidth
+                  variant="text"
+                  onClick={toggleLogin}
+                >
+                  Sign Up Instead
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Typography variant="h5">Sign Up</Typography>
+              <form
+                style={{
+                  width: "100%",
+                  marginTop: "1rem",
+                }}
+                onSubmit={handleSignUp}
+              >
+                <Stack position={"relative"} width={"8rem"} margin={"auto"}>
                   <Avatar
                     sx={{
-                      width: "10rem",
-                      height: "10rem",
+                      width: "8rem",
+                      height: "8rem",
                       objectFit: "contain",
                     }}
                     src={avatar.preview}
@@ -173,118 +247,101 @@ const LoginPage = () => {
                       />
                     </>
                   </IconButton>
-                </Box>
-              )}
-              {avatar.error && (
-                <Typography m={"0.7rem"} color={"red"} variant="caption">
-                  {avatar.error}
-                </Typography>
-              )}
-              <Typography component="h1" variant="h5">
-                {isLoggedIn ? "Sign in" : "Register"}
-              </Typography>
-              <Box
-                component="form"
-                onSubmit={handleSubmit}
-                noValidate
-                sx={{ mt: 1 }}
-              >
+                </Stack>
+
+                {avatar.error && (
+                  <Typography
+                    m={"1rem auto"}
+                    width={"fit-content"}
+                    display={"block"}
+                    color="error"
+                    variant="caption"
+                  >
+                    {avatar.error}
+                  </Typography>
+                )}
+
                 <TextField
-                  margin="normal"
                   required
                   fullWidth
-                  id="username"
+                  label="Name"
+                  margin="normal"
+                  variant="outlined"
+                  value={name.value}
+                  onChange={name.changeHandler}
+                />
+
+                <TextField
+                  required
+                  fullWidth
+                  label="Bio"
+                  margin="normal"
+                  variant="outlined"
+                  value={bio.value}
+                  onChange={bio.changeHandler}
+                />
+                <TextField
+                  required
+                  fullWidth
                   label="Username"
-                  name="username"
-                  autoComplete="username"
-                  autoFocus
+                  margin="normal"
+                  variant="outlined"
                   value={username.value}
                   onChange={username.changeHandler}
-                  style={{ fontWeight: "bold" }}
                 />
+
                 {username.error && (
-                  <Typography color="red" variant="caption">
+                  <Typography color="error" variant="caption">
                     {username.error}
                   </Typography>
                 )}
-                {!isLoggedIn && (
-                  <>
-                    <TextField
-                      margin="normal"
-                      required
-                      fullWidth
-                      id="email"
-                      label="Email Address"
-                      name="email"
-                      autoComplete="email"
-                      value={email.value}
-                      onChange={email.changeHandler}
-                      style={{ fontWeight: "bold" }}
-                    />
-                    <TextField
-                      margin="normal"
-                      required
-                      fullWidth
-                      id="bio"
-                      label="Bio"
-                      name="bio"
-                      autoComplete="bio"
-                      value={bio.value}
-                      onChange={bio.changeHandler}
-                      style={{ fontWeight: "bold" }}
-                    />
-                  </>
-                )}
+
                 <TextField
-                  margin="normal"
                   required
                   fullWidth
-                  name="password"
                   label="Password"
                   type="password"
-                  id="password"
-                  autoComplete={
-                    isLoggedIn ? "current-password" : "new-password"
-                  }
+                  margin="normal"
+                  variant="outlined"
                   value={password.value}
                   onChange={password.changeHandler}
-                  style={{ fontWeight: "bold" }}
                 />
-                {password.error && (
-                  <Typography color="red" variant="caption">
-                    {password.error}
-                  </Typography>
-                )}
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
-                >
-                  {isLoggedIn ? "Sign In" : "Register"}
-                </Button>
-                <Link
-                  component="button"
-                  variant="body2"
-                  onClick={toggleLoginRegister}
-                  sx={{
-                    display: "block",
-                    textAlign: "center",
-                    mt: 2,
-                    color: "black",
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
                   }}
                 >
-                  {isLoggedIn
-                    ? "Don't have an account? Register"
-                    : "Already have an account? Sign In"}
-                </Link>
-              </Box>
-            </Box>
-          </Paper>
-        </Container>
-      </Box>
-    </ThemeProvider>
+                  <Button
+                    sx={{
+                      marginTop: "1rem",
+                    }}
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    Sign Up
+                  </Button>
+
+                  <Button
+                    disabled={isLoading}
+                    fullWidth
+                    variant="outlined"
+                    onClick={toggleLogin}
+                  >
+                    Login Instead
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
+        </Paper>
+      </Container>
+    </div>
   );
 };
 
-export default LoginPage;
+export default Login;
